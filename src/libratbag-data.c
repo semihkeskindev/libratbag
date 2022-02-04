@@ -75,6 +75,8 @@ struct data_hidpp10 {
 
 	struct dpi_list *dpi_list;
 	struct dpi_range *dpi_range;
+	int resolution_count;
+	int button_count;
 	int led_count;
 };
 
@@ -119,6 +121,8 @@ init_data_hidpp10(struct ratbag *ratbag,
 	data->hidpp10.index = -1;
 	data->hidpp10.profile_count = -1;
 	data->hidpp10.profile_type = NULL;
+	data->hidpp10.resolution_count = -1;
+	data->hidpp10.button_count = -1;
 	data->hidpp10.led_count = -1;
 
 	num = g_key_file_get_integer(keyfile, group, "DeviceIndex", &error);
@@ -131,6 +135,20 @@ init_data_hidpp10(struct ratbag *ratbag,
 	num = g_key_file_get_integer(keyfile, group, "Profiles", &error);
 	if (num > 0 || !error)
 		data->hidpp10.profile_count = num;
+	if (error)
+		g_error_free(error);
+
+	error = NULL;
+	num = g_key_file_get_integer(keyfile, group, "Resolutions", &error);
+	if (num > 0 || !error)
+		data->hidpp10.resolution_count = num;
+	if (error)
+		g_error_free(error);
+
+	error = NULL;
+	num = g_key_file_get_integer(keyfile, group, "Buttons", &error);
+	if (num > 0 || !error)
+		data->hidpp10.button_count = num;
 	if (error)
 		g_error_free(error);
 
@@ -590,6 +608,22 @@ ratbag_device_data_hidpp10_get_dpi_range(const struct ratbag_device_data *data)
 	assert(data->drivertype == HIDPP10);
 
 	return data->hidpp10.dpi_range;
+}
+
+int
+ratbag_device_data_hidpp10_get_num_dpi_modes(const struct ratbag_device_data *data)
+{
+	assert(data->drivertype == HIDPP10);
+
+	return data->hidpp10.resolution_count;
+}
+
+int
+ratbag_device_data_hidpp10_get_num_buttons(const struct ratbag_device_data *data)
+{
+	assert(data->drivertype == HIDPP10);
+
+	return data->hidpp10.button_count;
 }
 
 int

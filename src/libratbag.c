@@ -276,6 +276,8 @@ ratbag_sanity_check_device(struct ratbag_device *device)
 				goto out;
 		}
 
+		// it shouldn't loop here, how come the resolutions are present
+		// list_for_each(resolution_, &(profile_)->resolutions, link)
 		ratbag_profile_for_each_resolution(profile, resolution) {
 			nvals = ratbag_resolution_get_dpi_list(resolution, vals, nvals);
 			if (nvals == 0) {

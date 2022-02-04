@@ -67,6 +67,18 @@ struct dpi_range *
 ratbag_device_data_hidpp10_get_dpi_range(const struct ratbag_device_data *data);
 
 /**
+ * @return The resolution count index or -1 if not set
+ */
+int
+ratbag_device_data_hidpp10_get_num_dpi_modes(const struct ratbag_device_data *data);
+
+/**
+ * @return The buttons count index or -1 if not set
+ */
+int
+ratbag_device_data_hidpp10_get_num_buttons(const struct ratbag_device_data *data);
+
+/**
  * @return The led count index or -1 if not set
  */
 int

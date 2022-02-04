@@ -507,21 +507,50 @@ hidpp10drv_read_profile(struct ratbag_profile *profile)
 static int
 hidpp10drv_fill_from_profile(struct ratbag_device *device, struct hidpp10_device *dev)
 {
-	int rc, num_leds;
+	int rc, num_dpi_modes, num_buttons, num_leds;
 	struct hidpp10_profile profile = {0};
+	unsigned int profile_count = dev->profile_count;
 	unsigned int i;
 
 	/* We don't know the HID++1.0 requests to query for buttons, etc.
 	 * Simply get the first enabled profile and fill in the device
 	 * information from that.
+	 * enabled profile or sane default
 	 */
-	for (i = 0; i < dev->profile_count; i++) {
+	for (i = 0; i < profile_count; i++) {
 		rc = hidpp10_get_profile(dev, i, &profile);
-		if (rc)
-			return rc;
-		if (profile.enabled)
+
+		if (rc) {
+			log_info(device->ratbag,
+				 "Device %s might have invalid profiles"
+				 "falling back to sane defaults.\n",
+				 device->name);
+
+			// cleanup profile
+			memset(&profile, 0, sizeof(struct hidpp10_profile));
+
+			/* Fall back to something that every mouse has */
+			profile_count = 1;
+			profile.num_dpi_modes = 1;
+			profile.num_buttons = 3;
+			profile.num_leds = 0;
 			break;
+		}
+
+		if (profile.enabled) {
+			break;
+		}
 	}
+
+	/* let the .device file override resolutions count from the profile */
+	num_dpi_modes = ratbag_device_data_hidpp10_get_num_dpi_modes(device->data);
+	if (num_dpi_modes >= 0)
+		profile.num_dpi_modes = num_dpi_modes;
+
+	/* let the .device file override buttons count from the profile */
+	num_buttons = ratbag_device_data_hidpp10_get_num_buttons(device->data);
+	if (num_buttons >= 0)
+		profile.num_buttons = num_buttons;
 
 	/* let the .device file override LED count from the profile */
 	num_leds = ratbag_device_data_hidpp10_get_led_count(device->data);
@@ -529,8 +558,8 @@ hidpp10drv_fill_from_profile(struct ratbag_device *device, struct hidpp10_device
 		profile.num_leds = num_leds;
 
 	ratbag_device_init_profiles(device,
-				    dev->profile_count,
-				    profile.num_dpi_modes,
+				    profile_count,
+				    profile.num_dpi_modes, // resolutions
 				    profile.num_buttons,
 				    profile.num_leds);
 
@@ -715,14 +744,22 @@ hidpp10drv_probe(struct ratbag_device *device)
 	drv_data->dev = dev;
 	ratbag_set_drv_data(device, drv_data);
 
-	if (hidpp10drv_fill_from_profile(device, dev)) {
-		/* Fall back to something that every mouse has */
-		_cleanup_profile_ struct ratbag_profile *profile;
+	hidpp10drv_fill_from_profile(device, dev);
 
-		ratbag_device_init_profiles(device, 1, 1, 3, 0);
-		profile = ratbag_device_get_profile(device, 0);
-		profile->is_active = true;
-	}
+	/* if (hidpp10drv_fill_from_profile(device, dev)) { */
+	/* 	log_info(device->ratbag, */
+	/* 		 "Device %s might have invalid profiles" */
+	/* 		 "falling back to sane defaults.\n", */
+	/* 		 device->name); */
+
+	/* 	/\* Fall back to something that every mouse has *\/ */
+	/* 	_cleanup_profile_ struct ratbag_profile *profile; */
+
+	/* 	// 1 resolution by default */
+	/* 	ratbag_device_init_profiles(device, 1, 1, 3, 0); */
+	/* 	profile = ratbag_device_get_profile(device, 0); */
+	/* 	profile->is_active = true; */
+	/* } */
 
 	ratbag_device_for_each_profile(device, profile)
 		hidpp10drv_read_profile(profile);
