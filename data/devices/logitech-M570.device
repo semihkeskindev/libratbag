@@ -3,3 +3,8 @@
 Name=Logitech M570
 DeviceMatch=usb:046d:1028
 Driver=hidpp10
+
+[Driver/hidpp10]
+DpiList=200;400;600;800;1000;1200;1400;1600;1800;2000;2200;2400;2600;2800;3000;3200
+Buttons=5
+Resolutions=0

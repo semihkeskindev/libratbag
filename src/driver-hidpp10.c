@@ -522,7 +522,7 @@ hidpp10drv_fill_from_profile(struct ratbag_device *device, struct hidpp10_device
 
 		if (rc) {
 			log_info(device->ratbag,
-				 "Device %s might have invalid profiles"
+				 "Device %s might have invalid profiles, "
 				 "falling back to sane defaults.\n",
 				 device->name);
 
@@ -544,18 +544,30 @@ hidpp10drv_fill_from_profile(struct ratbag_device *device, struct hidpp10_device
 
 	/* let the .device file override resolutions count from the profile */
 	num_dpi_modes = ratbag_device_data_hidpp10_get_num_dpi_modes(device->data);
-	if (num_dpi_modes >= 0)
+	if (num_dpi_modes >= 0) {
+                log_debug(device->ratbag,
+			  "%s: overriding resolutions to %d.\n",
+			  device->name, num_dpi_modes);
 		profile.num_dpi_modes = num_dpi_modes;
+	}
 
 	/* let the .device file override buttons count from the profile */
 	num_buttons = ratbag_device_data_hidpp10_get_num_buttons(device->data);
-	if (num_buttons >= 0)
+	if (num_buttons >= 0) {
+                log_debug(device->ratbag,
+			  "%s: overriding buttons to %d.\n",
+			  device->name, num_buttons);
 		profile.num_buttons = num_buttons;
+	}
 
 	/* let the .device file override LED count from the profile */
 	num_leds = ratbag_device_data_hidpp10_get_led_count(device->data);
-	if (num_leds >= 0)
+	if (num_leds >= 0) {
+                log_debug(device->ratbag,
+			  "%s: overriding leds count to %d.\n",
+			  device->name, num_leds);
 		profile.num_leds = num_leds;
+	}
 
 	ratbag_device_init_profiles(device,
 				    profile_count,
